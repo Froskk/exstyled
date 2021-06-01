@@ -11,43 +11,77 @@ import {
   tSUnknownKeyword,
   TSType,
   StringLiteral,
+  isFunction,
 } from "@babel/types";
 import { capitaliseFirstLetter } from "../command";
+import { commands, Hover, Range, TextDocument } from "vscode";
+import { findMatchIndexes } from "./findMatches";
 
-const generateTypedefString = (allAttributes: Attributes) => {
-  let expressions: TSPropertySignature[] = [];
-  let spreadExpression: TSPropertySignature[] = [];
+const generateTypedefString = async (document: TextDocument, allAttributes: Attributes) => {
+  let expressions: Promise<string>[] = [];
+  let spreadExpression: Promise<string>[] = [];
 
   if (allAttributes.spreadAttrs) {
     spreadExpression = allAttributes.spreadAttrs.map(
-      // @ts-expect-error
-      a => tsPropertySignature(identifier(a.argument.name as string),
-        tsTypeAnnotation(tSUnknownKeyword()))
+      async a => {
+        // @ts-expect-error
+        const unknownSignature = `${a.argument.name}: unknown[];`
+        const pos = document.positionAt(a.argument.start ?? 0)
+        const hover = await commands.executeCommand<Hover[]>('vscode.executeHoverProvider', document.uri, pos);
+        const tsHoverContent = hover && hover
+          // @ts-expect-error
+          .reduce<string[]>((acc, val) => acc.concat(val.contents.map((x) => x.value)), [])
+          .find((x) => x.includes('typescript'));
+
+        if (!tsHoverContent) {
+          return unknownSignature
+        }
+
+        const indexes = findMatchIndexes(/\w+:/gm, tsHoverContent);
+        const dirtyType = tsHoverContent.slice(indexes[0]);
+        const cleanType = dirtyType.replace(/(`)/gm, '').replace(/\n+$/, '');
+
+        return `\t${cleanType}`;
+      }
     )
   }
 
   if (allAttributes.attrs) {
-    expressions = allAttributes.attrs.map(
-      a => {
-        const typeofAttr = typeof (a.value as StringLiteral).value
-        const tsName = { type: `TS${capitaliseFirstLetter(typeofAttr)}Keyword` } as TSType
+    expressions = (allAttributes.attrs.map(
+      async a => {
+        const unknownSignature = `${a.name.name}: unknown;`
 
-        return tsPropertySignature(identifier((a.name as JSXIdentifier).name), tsTypeAnnotation(tsName))
-      })
+        const hover = await commands.executeCommand<Hover[]>('vscode.executeHoverProvider', document.uri, document.positionAt(a.start ?? 0));
+        const tsHoverContent = hover && hover
+          // @ts-expect-error
+          .reduce<string[]>((acc, val) => acc.concat(val.contents.map((x) => x.value)), [])
+          .find((x) => x.includes('typescript'));
+
+        if (!tsHoverContent) {
+          return unknownSignature
+        }
+
+        const indexes = findMatchIndexes(/\)/gm, tsHoverContent);
+        const dirtyType = tsHoverContent.slice(indexes[0] + 2);
+        const cleanType = dirtyType.replace(/(`)/gm, '').replace(/\n+$/, '').replace(/\n/gm, '\n\t');
+
+        return `\t${cleanType};`;
+      }))
   }
 
-  return expressions.concat(spreadExpression)
+  const expr = await Promise.all(expressions.concat(spreadExpression))
+
+  return expr
 };
 
-export const generateTypedef = (
+export const generateTypedef = async (
+  document: TextDocument,
   componentName: string,
   otherAttrs?: Attributes
 ) => {
   if (!otherAttrs) return ''
 
-  const typeLiteralMembers = generateTypedefString(otherAttrs)
-
-  return generate(
-    tsTypeAliasDeclaration(identifier(`${componentName}Props`), null, tsTypeLiteral(typeLiteralMembers))
-  ).code;
+  const typeLiteralMembers = await generateTypedefString(document, otherAttrs)
+  const declaration = `type ${componentName}Props = {\n`
+  return declaration.concat(typeLiteralMembers.join('\n'), '\n}')
 };

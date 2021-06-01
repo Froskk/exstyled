@@ -48,7 +48,7 @@ export const exstyledCommand = async () => {
 
     componentName = capitaliseFirstLetter(componentName);
 
-    const typedef = await generateTypedef(componentName, otherAttrs)
+    const typedef = await generateTypedef(editor.document, componentName, otherAttrs)
     const component = generateStyledComponent(elementName, componentName, styleAttr, typedef.length > 0);
 
     const importStatement =
