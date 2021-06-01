@@ -1,15 +1,31 @@
 import * as assert from 'assert';
 
-// You can import and use all API from the 'vscode' module
-// as well as import your extension to test it
-import * as vscode from 'vscode';
-// import * as myExtension from '../../extension';
+import { window } from 'vscode';
+import { parseDocument } from '../../util/parseDocument';
 
 suite('Extension Test Suite', () => {
-	vscode.window.showInformationMessage('Start all tests.');
+	window.showInformationMessage('Start all tests.');
 
-	test('Sample test', () => {
-		assert.strictEqual(-1, [1, 2, 3].indexOf(5));
-		assert.strictEqual(-1, [1, 2, 3].indexOf(0));
+	test("Should transform style property", () => {
+		const t = `
+			  <div style={{
+				  marginTop: '12px'
+			  }}/>
+		  `;
+		const {
+			selectedElement,
+			elementName,
+			insertPosition,
+			styleAttr,
+		} = parseDocument(t, 10);
+
+		assert.notStrictEqual(selectedElement, undefined);
+		assert.notStrictEqual(styleAttr, undefined);
+		assert.strictEqual(styleAttr?.properties.length, 1);
+		assert.strictEqual(styleAttr?.properties[0].key, 'marginTop');
+		assert.strictEqual(styleAttr?.properties[0].value, '12px');
+
+		assert.strictEqual(elementName, 'StyledDiv')
+		assert.strictEqual(insertPosition, 0)
 	});
 });

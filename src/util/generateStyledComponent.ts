@@ -55,5 +55,5 @@ export const generateStyledComponent = (
     ])
   ).code;
 
-  return withProps ? code.replace("\`", `<${componentName}Props>\``) : code
+  return withProps ? code.replace("\`", `<${componentName}Props>\``) : code;
 };

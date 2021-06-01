@@ -16,12 +16,12 @@ export class CodeActionProvider implements BaseCodeActionProvider {
     document: TextDocument,
     range: Range | Selection
   ): ProviderResult<(Command | CodeAction)[]> {
-    const currentLineText = document.lineAt(range.start.line).text.trim()
+    const currentLineText = document.lineAt(range.start.line).text.trim();
 
     if (currentLineText.startsWith('<') || currentLineText.endsWith('>')) {
       const cmd = new CodeAction('✨ Extract styled component');
       cmd.command = { command: COMMAND_NAME, title: EXTENSION_NAME };
-      cmd.isPreferred = true
+      cmd.isPreferred = true;
 
       return [cmd];
     }

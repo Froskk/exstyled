@@ -29,14 +29,14 @@ export type StyleAttribute = {
   start: number;
   end: number;
   properties: Property[];
-}
+};
 
 export type Attributes = {
   attrs?: JSXAttribute[]
   spreadAttrs?: JSXSpreadAttribute[]
-}
+};
 
-export type ProcessedAttrs = StyleAttribute & Attributes
+export type ProcessedAttrs = StyleAttribute & Attributes;
 
 const findTagAndInsertPosition = (file: File, offset: number) => {
   let parentDeclaration: Node | undefined = undefined;
@@ -53,8 +53,8 @@ const findTagAndInsertPosition = (file: File, offset: number) => {
         selectedElement === undefined ||
         enter.node.start > selectedElement.start!
       ) {
-        const parentPath = enter.findParent(path => (path.isFunctionDeclaration() || path.isVariableDeclaration()))
-        parentDeclaration = parentPath?.node
+        const parentPath = enter.findParent(path => (path.isFunctionDeclaration() || path.isVariableDeclaration()));
+        parentDeclaration = parentPath?.node;
         selectedElement = enter.node;
       }
     },
@@ -73,7 +73,7 @@ const findTagAndInsertPosition = (file: File, offset: number) => {
     },
   });
 
-  const parentNode = parentDeclaration as Node | undefined
+  const parentNode = parentDeclaration as Node | undefined;
 
   return { selectedElement, insertPosition, importStatementExisting, parentNode };
 };
@@ -119,14 +119,14 @@ const getStyleAttribute = (element: JSXElement): StyleAttribute | null => {
 };
 
 const getOtherAttrs = (element: JSXElement): Attributes | undefined => {
-  const openingEl = element.openingElement
+  const openingEl = element.openingElement;
   const attrs = openingEl.attributes.filter(
     a => a.type === 'JSXAttribute' && a.name.name !== 'style'
-  ) as JSXAttribute[] | undefined
+  ) as JSXAttribute[] | undefined;
 
   const spreadAttrs = openingEl.attributes.filter(
     a => a.type === 'JSXSpreadAttribute'
-  ) as JSXSpreadAttribute[] | undefined
+  ) as JSXSpreadAttribute[] | undefined;
 
   // if objects are undefined, or are both empty arrays, return undefined
   if ((!attrs && !spreadAttrs) || ((attrs && attrs.length === 0) && (spreadAttrs && spreadAttrs.length === 0))) {
@@ -136,8 +136,8 @@ const getOtherAttrs = (element: JSXElement): Attributes | undefined => {
   return {
     attrs,
     spreadAttrs
-  }
-}
+  };
+};
 
 export const parseDocument = (text: string, currentOffset: number) => {
   const file = parse(text, babelOptions);

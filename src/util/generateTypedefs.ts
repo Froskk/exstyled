@@ -25,8 +25,8 @@ const generateTypedefString = async (document: TextDocument, allAttributes: Attr
     spreadExpression = allAttributes.spreadAttrs.map(
       async a => {
         // @ts-expect-error
-        const unknownSignature = `${a.argument.name}: unknown[];`
-        const pos = document.positionAt(a.argument.start ?? 0)
+        const unknownSignature = `${a.argument.name}: unknown[];`;
+        const pos = document.positionAt(a.argument.start ?? 0);
         const hover = await commands.executeCommand<Hover[]>('vscode.executeHoverProvider', document.uri, pos);
         const tsHoverContent = hover && hover
           // @ts-expect-error
@@ -34,7 +34,7 @@ const generateTypedefString = async (document: TextDocument, allAttributes: Attr
           .find((x) => x.includes('typescript'));
 
         if (!tsHoverContent) {
-          return unknownSignature
+          return unknownSignature;
         }
 
         const indexes = findMatchIndexes(/\w+:/gm, tsHoverContent);
@@ -43,13 +43,13 @@ const generateTypedefString = async (document: TextDocument, allAttributes: Attr
 
         return `\t${cleanType}`;
       }
-    )
+    );
   }
 
   if (allAttributes.attrs) {
     expressions = (allAttributes.attrs.map(
       async a => {
-        const unknownSignature = `${a.name.name}: unknown;`
+        const unknownSignature = `${a.name.name}: unknown;`;
 
         const hover = await commands.executeCommand<Hover[]>('vscode.executeHoverProvider', document.uri, document.positionAt(a.start ?? 0));
         const tsHoverContent = hover && hover
@@ -58,7 +58,7 @@ const generateTypedefString = async (document: TextDocument, allAttributes: Attr
           .find((x) => x.includes('typescript'));
 
         if (!tsHoverContent) {
-          return unknownSignature
+          return unknownSignature;
         }
 
         const indexes = findMatchIndexes(/\)/gm, tsHoverContent);
@@ -66,12 +66,12 @@ const generateTypedefString = async (document: TextDocument, allAttributes: Attr
         const cleanType = dirtyType.replace(/(`)/gm, '').replace(/\n+$/, '').replace(/\n/gm, '\n\t');
 
         return `\t${cleanType};`;
-      }))
+      }));
   }
 
-  const expr = await Promise.all(expressions.concat(spreadExpression))
+  const expr = await Promise.all(expressions.concat(spreadExpression));
 
-  return expr
+  return expr;
 };
 
 export const generateTypedef = async (
@@ -79,9 +79,9 @@ export const generateTypedef = async (
   componentName: string,
   otherAttrs?: Attributes
 ) => {
-  if (!otherAttrs) return ''
+  if (!otherAttrs) {return '';}
 
-  const typeLiteralMembers = await generateTypedefString(document, otherAttrs)
-  const declaration = `type ${componentName}Props = {\n`
-  return declaration.concat(typeLiteralMembers.join('\n'), '\n}')
+  const typeLiteralMembers = await generateTypedefString(document, otherAttrs);
+  const declaration = `type ${componentName}Props = {\n`;
+  return declaration.concat(typeLiteralMembers.join('\n'), '\n}');
 };

@@ -6,9 +6,9 @@ import { generateImportStatement } from "./util/generateImportStatement";
 import { generateTypedef } from "./util/generateTypedefs";
 
 export const COMMAND_NAME = "extension.exstyled";
-export const EXTENSION_NAME = 'ExStyled'
+export const EXTENSION_NAME = 'ExStyled';
 
-export const capitaliseFirstLetter = (input: string) => `${input.substr(0, 1).toUpperCase()}${input.substr(1)}`
+export const capitaliseFirstLetter = (input: string) => `${input.substr(0, 1).toUpperCase()}${input.substr(1)}`;
 
 export const exstyledCommand = async () => {
     const editor = window.activeTextEditor;
@@ -48,7 +48,7 @@ export const exstyledCommand = async () => {
 
     componentName = capitaliseFirstLetter(componentName);
 
-    const typedef = await generateTypedef(editor.document, componentName, otherAttrs)
+    const typedef = await generateTypedef(editor.document, componentName, otherAttrs);
     const component = generateStyledComponent(elementName, componentName, styleAttr, typedef.length > 0);
 
     const importStatement =
@@ -84,7 +84,7 @@ type ModifyDoc = {
     styleAttr: StyleAttribute | null,
     componentName: string,
     typedef: string | null
-}
+};
 const modifyDocument = async ({
     editor,
     styledComponent,
@@ -100,7 +100,7 @@ const modifyDocument = async ({
     const openName = oldElement.openingElement.name;
     const closeName = oldElement.closingElement?.name;
 
-    const location = document.positionAt(insertPosition)
+    const location = document.positionAt(insertPosition);
 
 
     await editor.edit(
@@ -118,7 +118,7 @@ const modifyDocument = async ({
                 editBuilder.insert(
                     location,
                     `\n${importStatement ? '' : '\n'}${typedef}${importStatement ? '\n' : ''}`
-                )
+                );
             }
 
             // Insert component
